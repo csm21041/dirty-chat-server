@@ -1,17 +1,34 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Model } from "@prisma/client";
 import axios from "axios";
-const prisma = new PrismaClient();
 import { Request, Response } from "express";
 import createSupabaseClient from "../utils/client";
 import fs from "fs";
+
+interface ModelData {
+  name: string;
+  attributes: string[];
+  description: string;
+}
+
+interface ImageData {
+  filename: string;
+  path: string;
+}
+
+interface MessageData {
+  userId: number;
+  modelId: number;
+  message_text: string;
+}
+
+const prisma = new PrismaClient();
 
 async function createModel(req: Request, res: Response) {
   try {
     const supabase = createSupabaseClient();
     const formData = req.body;
-    const modelData = JSON.parse(formData.data);
-    console.log("modelData", modelData);
-    const images = req.files as Express.Multer.File[];
+    const modelData: ModelData = JSON.parse(formData.data);
+    const images = req.files as ImageData[];
 
     images.forEach(async (image) => {
       const imagefile = fs.readFileSync(image.path);
@@ -26,14 +43,17 @@ async function createModel(req: Request, res: Response) {
       }
     });
 
-    fs.readdir(`./uploads`, (err, files) => {
-      if (err) console.log(err);
-      files.forEach((file) => {
-        fs.unlink(`./uploads/${file}`, (err) => {
-          if (err) console.log(err);
+    fs.readdir(
+      `./uploads`,
+      (err: NodeJS.ErrnoException | null, files: Array<string>) => {
+        if (err) console.log(err);
+        files.forEach((file: string) => {
+          fs.unlink(`./uploads/${file}`, (err) => {
+            if (err) console.log(err);
+          });
         });
-      });
-    });
+      }
+    );
 
     const profile_images: { [key: string]: string } = {};
     for (let i in images) {
@@ -62,16 +82,17 @@ async function createModel(req: Request, res: Response) {
 
 async function getModels(req: Request, res: Response) {
   try {
-    const data = await prisma.model.findMany({});
+    const data: Model[] = await prisma.model.findMany({});
     return res.status(200).json(data);
   } catch (error) {
     console.log(error);
   }
 }
+
 async function getModel(req: Request, res: Response) {
   try {
     const id = parseInt(req.params.id);
-    const data = await prisma.model.findFirst({
+    const data: Model | null = await prisma.model.findFirst({
       where: {
         id: id,
       },
@@ -85,7 +106,7 @@ async function getModel(req: Request, res: Response) {
 
 async function storeMessage(req: Request, res: Response) {
   try {
-    const data = req.body;
+    const data: MessageData = req.body;
     console.log(data);
     // // const currTime = new Date().toLocaleTimeString();
     await prisma.messages.create({

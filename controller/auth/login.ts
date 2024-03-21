@@ -1,5 +1,5 @@
+import { PrismaClient } from "@prisma/client";
 import createSupabaseClient from "../../utils/client";
-import { PrismaClient } from "prisma/prisma-client";
 import { Request, Response } from "express";
 
 export default async function login(req: Request, res: Response) {

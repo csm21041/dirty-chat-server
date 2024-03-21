@@ -1,5 +1,5 @@
 import createSupabaseClient from "../../utils/client";
-import { PrismaClient } from "prisma/prisma-client";
+import { PrismaClient } from "@prisma/client";
 
 export default async function signup(req: any, res: any) {
   const supabase = createSupabaseClient();

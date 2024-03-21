@@ -22,10 +22,6 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
-  return res.json({ message: "hello from home page" });
-});
-
 app.post("/admin/create", upload.array("files"), createModel);
 app.get("/admin/models", getModels);
 app.get("/user/model/:id", getModel);
