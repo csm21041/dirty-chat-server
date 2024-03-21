@@ -1,7 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
-import { Database } from "../database.types";
 
-export default function createSupabaseClient<Database>() {
+export default function createSupabaseClient() {
   const url = process.env.SUPABASE_URL ?? "";
   const api = process.env.SUPABASE_API ?? "";
   if (url === "" || api === "") {
