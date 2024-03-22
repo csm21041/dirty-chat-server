@@ -9,6 +9,7 @@ import {
   getModel,
   storeMessage,
   getMessages,
+  deleteModel,
 } from "./controller/createModel";
 import signup from "./controller/auth/signup";
 import login from "./controller/auth/login";
@@ -24,6 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.post("/admin/create", upload.array("files"), createModel);
 app.get("/admin/models", getModels);
+app.delete("/admin/delete/:id", deleteModel);
 app.get("/user/model/:id", getModel);
 app.post("/user/store", storeMessage);
 app.post("/auth/signup", signup);

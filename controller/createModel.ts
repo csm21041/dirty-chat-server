@@ -165,4 +165,25 @@ async function getMessages(req: Request, res: Response) {
   }
 }
 
-export { createModel, getModels, getModel, storeMessage, getMessages };
+async function deleteModel(req: Request, res: Response) {
+  try {
+    const id = parseInt(req.params.id);
+    await prisma.model.delete({
+      where: {
+        id: id,
+      },
+    });
+    return res.status(200).json({ message: "Deleted Successfully" });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export {
+  createModel,
+  getModels,
+  getModel,
+  storeMessage,
+  getMessages,
+  deleteModel,
+};
