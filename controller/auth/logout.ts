@@ -7,12 +7,12 @@ export default async function logout(req: any, res: any) {
     res.clearCookie("token", {
       httpOnly: true,
       sameSite: "none",
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
     });
     res.clearCookie("admin", {
       httpOnly: true,
       sameSite: "none",
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
     });
     return res.status(200).json({ message: "Logout Successfull" });
   } catch (error) {

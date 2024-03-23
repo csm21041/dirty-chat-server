@@ -18,7 +18,8 @@ interface ImageData {
 interface MessageData {
   userId: number;
   modelId: number;
-  message_text: string;
+  max_tokens: number;
+  message_text: { role: string; content: string };
 }
 
 const prisma = new PrismaClient();
@@ -37,7 +38,6 @@ async function createModel(req: Request, res: Response) {
         .upload(`${modelData.name}/${image.filename}`, imagefile, {
           upsert: true,
         });
-      console.log(data);
       if (error) {
         console.log(error);
       }
@@ -97,7 +97,6 @@ async function getModel(req: Request, res: Response) {
         id: id,
       },
     });
-    console.log(data);
     return res.status(200).json(data);
   } catch (error) {
     console.log(error);
@@ -107,31 +106,35 @@ async function getModel(req: Request, res: Response) {
 async function storeMessage(req: Request, res: Response) {
   try {
     const data: MessageData = req.body;
-    console.log(data);
-    // // const currTime = new Date().toLocaleTimeString();
+    const api_data = {
+      model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+      messages: [
+        { role: data.message_text.role, content: data.message_text.content },
+      ],
+      max_tokens: data.max_tokens,
+    };
     await prisma.messages.create({
       data: {
         userId: data.userId,
         modelId: data.modelId,
         status: "delievered",
-        // chatId: 1,
         message_text: data.message_text,
-        // timestamp: "currTime",
       },
     });
     const response = await axios.post(
-      "https://chat.vdokart.in/chat.php",
-      data,
+      `${process.env.API_END_POINT}`,
+      api_data,
       {
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.API_KEY}`,
         },
       }
     );
 
     const messageText = {
-      message: response.data.content,
-      self: false,
+      content: response.data.choices[0].message.content,
+      role: "assistant",
     };
 
     await prisma.messages.create({
@@ -139,12 +142,10 @@ async function storeMessage(req: Request, res: Response) {
         userId: data.userId,
         modelId: data.modelId,
         status: "delievered",
-        // chatId: 1,
         message_text: messageText,
-        // timestamp: "currTime",
       },
     });
-    return res.status(200).json(response.data.content);
+    return res.status(200).json(response.data.choices[0].message.content);
   } catch (error) {
     console.log(error);
   }
@@ -179,6 +180,22 @@ async function deleteModel(req: Request, res: Response) {
   }
 }
 
+async function deleteChat(req: Request, res: Response) {
+  try {
+    const mid = parseInt(req.params.mid);
+    const uid = parseInt(req.params.uid);
+    await prisma.messages.deleteMany({
+      where: {
+        userId: uid,
+        modelId: mid,
+      },
+    });
+    return res.status(200).json({ message: "Deleted Successfully" });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 export {
   createModel,
   getModels,
@@ -186,4 +203,5 @@ export {
   storeMessage,
   getMessages,
   deleteModel,
+  deleteChat,
 };

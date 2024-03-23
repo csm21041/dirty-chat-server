@@ -21,7 +21,7 @@ export default async function login(req: Request, res: Response) {
         res.cookie("admin", true, {
           httpOnly: true,
           sameSite: "none",
-          secure: true,
+          secure: process.env.NODE_ENV === "production",
         });
     } else {
       user = await prisma.user.findFirst({
@@ -42,9 +42,8 @@ export default async function login(req: Request, res: Response) {
     res.cookie("token", supabaseuser.data.session?.access_token, {
       httpOnly: true,
       sameSite: "none",
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
     });
-    console.log(user);
     return res.status(200).json({ message: user?.id });
   } catch (error) {
     console.log(error);

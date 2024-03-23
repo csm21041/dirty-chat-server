@@ -22,13 +22,6 @@ export default async function signup(req: any, res: any) {
         tokenbalance: 100,
       },
     });
-    console.log(data);
-    res.cookie("token", data.session?.access_token, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-    });
-
     return res.status(200).json({ message: "Signup Successfull" });
   } catch (error) {
     console.log(error);
