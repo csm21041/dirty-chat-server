@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 
 export default async function login(req: Request, res: Response) {
   const supabase = createSupabaseClient();
+  console.log("Route hit");
   const prisma = new PrismaClient();
   let user = null;
   try {
