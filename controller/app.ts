@@ -25,6 +25,8 @@ interface MessageData {
 const prisma = new PrismaClient();
 
 async function createModel(req: Request, res: Response) {
+  if (req.method !== "POST")
+    return res.json({ message: ` ${req.method} Request  is not allowed` });
   try {
     const supabase = createSupabaseClient();
     const formData = req.body;
@@ -63,7 +65,7 @@ async function createModel(req: Request, res: Response) {
       profile_images[`${i}`] = String(data.publicUrl);
     }
 
-    await prisma.model.create({
+    const finalResult = await prisma.model.create({
       data: {
         name: modelData.name,
         attributes: modelData.attributes,
@@ -73,14 +75,16 @@ async function createModel(req: Request, res: Response) {
         profile_images: profile_images,
       },
     });
-
-    return res.status(200).json({ message: "Model created" });
+    console.log(finalResult);
+    return res.status(200).json({ data: finalResult });
   } catch (error) {
     console.log(error);
   }
 }
 
 async function getModels(req: Request, res: Response) {
+  if (req.method !== "GET")
+    return res.json({ message: ` ${req.method} Request is not allowed` });
   try {
     const data: Model[] = await prisma.model.findMany({});
     return res.status(200).json(data);
@@ -90,6 +94,8 @@ async function getModels(req: Request, res: Response) {
 }
 
 async function getModel(req: Request, res: Response) {
+  if (req.method !== "GET")
+    return res.json({ message: `${req.method} Request is not allowed` });
   try {
     const id = parseInt(req.params.id);
     const data: Model | null = await prisma.model.findFirst({
@@ -104,6 +110,8 @@ async function getModel(req: Request, res: Response) {
 }
 
 async function storeMessage(req: Request, res: Response) {
+  if (req.method !== "POST")
+    return res.json({ message: ` ${req.method} Request is not allowed` });
   try {
     const data: MessageData = req.body;
     const api_data = {
@@ -113,45 +121,57 @@ async function storeMessage(req: Request, res: Response) {
       ],
       max_tokens: data.max_tokens,
     };
-    await prisma.messages.create({
-      data: {
-        userId: data.userId,
-        modelId: data.modelId,
-        status: "delievered",
-        message_text: data.message_text,
+
+    const result = await axios.post(`${process.env.API_END_POINT}`, api_data, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.API_KEY}`,
       },
     });
-    const response = await axios.post(
-      `${process.env.API_END_POINT}`,
-      api_data,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.API_KEY}`,
-        },
-      }
-    );
 
     const messageText = {
-      content: response.data.choices[0].message.content,
       role: "assistant",
+      content: result.data.choices[0].message.content,
     };
 
-    await prisma.messages.create({
-      data: {
-        userId: data.userId,
-        modelId: data.modelId,
-        status: "delievered",
-        message_text: messageText,
-      },
-    });
-    return res.status(200).json(response.data.choices[0].message.content);
+    await prisma.$transaction([
+      prisma.messages.create({
+        data: {
+          userId: data.userId,
+          modelId: data.modelId,
+          status: "delievered",
+          message_text: data.message_text,
+        },
+      }),
+      prisma.messages.create({
+        data: {
+          userId: data.userId,
+          modelId: data.modelId,
+          status: "delievered",
+          message_text: messageText,
+        },
+      }),
+      prisma.user.update({
+        where: {
+          id: data.userId,
+        },
+        data: {
+          tokenbalance: {
+            decrement: 1,
+          },
+        },
+      }),
+    ]);
+
+    return res.status(200).json({ message: messageText.content });
   } catch (error) {
     console.log(error);
   }
 }
 
 async function getMessages(req: Request, res: Response) {
+  if (req.method !== "GET")
+    return res.json({ message: ` ${req.method} Request is not allowed` });
   try {
     const mid = parseInt(req.params.mid);
     const uid = parseInt(req.params.uid);
@@ -168,6 +188,8 @@ async function getMessages(req: Request, res: Response) {
 }
 
 async function deleteModel(req: Request, res: Response) {
+  if (req.method !== "DELETE")
+    return res.json({ message: `${req.method} Request is not allowed` });
   try {
     const id = parseInt(req.params.id);
     await prisma.model.delete({
@@ -182,6 +204,8 @@ async function deleteModel(req: Request, res: Response) {
 }
 
 async function deleteChat(req: Request, res: Response) {
+  if (req.method !== "DELETE")
+    return res.json({ message: `${req.method} Request is not allowed` });
   try {
     const mid = parseInt(req.params.mid);
     const uid = parseInt(req.params.uid);
@@ -197,6 +221,36 @@ async function deleteChat(req: Request, res: Response) {
   }
 }
 
+async function getToken(req: Request, res: Response) {
+  if (req.method !== "GET")
+    return res.json({ message: ` ${req.method} Request is not allowed` });
+  try {
+    const uid = parseInt(req.params.uid);
+    const response = await prisma.user.findUnique({
+      where: {
+        id: uid,
+      },
+      select: {
+        tokenbalance: true,
+      },
+    });
+    return res.status(200).json({ token: response?.tokenbalance });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function getUsers(req: Request, res: Response) {
+  if (req.method !== "GET")
+    return res.json({ message: ` ${req.method} Request is not allowed` });
+  try {
+    const response = await prisma.user.findMany({});
+    return res.status(200).json(response);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 export {
   createModel,
   getModels,
@@ -205,4 +259,6 @@ export {
   getMessages,
   deleteModel,
   deleteChat,
+  getToken,
+  getUsers,
 };
