@@ -6,12 +6,12 @@ export default async function logout(req: any, res: any) {
     await supabase.auth.signOut();
     res.clearCookie("token", {
       httpOnly: true,
-      sameSite: "strict",
+      sameSite: "lax",
       secure: true,
     });
     res.clearCookie("admin", {
       httpOnly: true,
-      sameSite: "strict",
+      sameSite: "lax",
       secure: true,
     });
     return res.status(200).json({ message: "Logout Successfull" });
