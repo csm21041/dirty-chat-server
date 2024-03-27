@@ -6,13 +6,13 @@ export default async function logout(req: any, res: any) {
     await supabase.auth.signOut();
     res.clearCookie("token", {
       httpOnly: true,
-      sameSite: "none",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      secure: true,
     });
     res.clearCookie("admin", {
       httpOnly: true,
-      sameSite: "none",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      secure: true,
     });
     return res.status(200).json({ message: "Logout Successfull" });
   } catch (error) {

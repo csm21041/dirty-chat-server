@@ -22,7 +22,7 @@ export default async function login(req: Request, res: Response) {
       else
         res.cookie("admin", adminHai, {
           httpOnly: true,
-          sameSite: "none",
+          sameSite: "strict",
           secure: true,
           expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
           maxAge: 1000 * 60 * 60 * 24 * 7,
@@ -47,7 +47,7 @@ export default async function login(req: Request, res: Response) {
     console.log("Token", supabaseuser.data.session?.access_token);
     res.cookie("token", supabaseuser.data.session?.access_token, {
       httpOnly: true,
-      sameSite: "none",
+      sameSite: "strict",
       secure: true,
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
       maxAge: 1000 * 60 * 60 * 24 * 7,
