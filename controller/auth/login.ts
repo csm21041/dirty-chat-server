@@ -7,7 +7,7 @@ export default async function login(req: Request, res: Response) {
   console.log("Route hit");
   const prisma = new PrismaClient();
   let user = null;
-  // const adminHai = "true";
+  const adminHai = "true";
   try {
     const { email, password, isAdmin } = req.body;
     if (isAdmin) {
@@ -19,14 +19,14 @@ export default async function login(req: Request, res: Response) {
       });
       if (user == null)
         return res.status(403).json({ message: "Invalid Credentials" });
-      // else
-      //   res.cookie("admin", adminHai, {
-      //     httpOnly: true,
-      //     sameSite: "none",
-      //     secure: process.env.NODE_ENV === "production",
-      //     expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-      //     maxAge: 1000 * 60 * 60 * 24 * 7,
-      //   });
+      else
+        res.cookie("admin", adminHai, {
+          httpOnly: true,
+          sameSite: "none",
+          secure: true,
+          expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+          maxAge: 1000 * 60 * 60 * 24 * 7,
+        });
     } else {
       user = await prisma.user.findFirst({
         where: {
@@ -48,7 +48,7 @@ export default async function login(req: Request, res: Response) {
     res.cookie("token", supabaseuser.data.session?.access_token, {
       httpOnly: true,
       sameSite: "none",
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
