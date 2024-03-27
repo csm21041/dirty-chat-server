@@ -23,6 +23,8 @@ export default async function login(req: Request, res: Response) {
           httpOnly: true,
           sameSite: "none",
           secure: process.env.NODE_ENV === "production",
+          expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+          maxAge: 1000 * 60 * 60 * 24 * 7,
         });
     } else {
       user = await prisma.user.findFirst({
@@ -44,6 +46,8 @@ export default async function login(req: Request, res: Response) {
       httpOnly: true,
       sameSite: "none",
       secure: process.env.NODE_ENV === "production",
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+      maxAge: 1000 * 60 * 60 * 24 * 7,
     });
     return res.status(200).json({ message: user?.id });
   } catch (error) {
