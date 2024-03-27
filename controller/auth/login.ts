@@ -19,7 +19,7 @@ export default async function login(req: Request, res: Response) {
       if (user == null)
         return res.status(403).json({ message: "Invalid Credentials" });
       else
-        res.cookie("admin", true, {
+        res.cookie("admin", "true", {
           httpOnly: true,
           sameSite: "none",
           secure: process.env.NODE_ENV === "production",
