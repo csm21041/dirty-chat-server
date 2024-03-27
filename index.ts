@@ -13,7 +13,7 @@ const Origin_Url = process.env.ORIGIN_URL;
 
 app.use(
   cors({
-    origin: ["https://dirty-chat-ai.vercel.app/", "http://localhost:3000/"],
+    origin: ["https://dirty-chat-ai.vercel.app", "http://localhost:3000"],
     credentials: true,
   })
 );
