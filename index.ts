@@ -11,7 +11,12 @@ import authRoutes from "./routes/auth";
 import getUser from "./middleware";
 const Origin_Url = process.env.ORIGIN_URL;
 
-app.use(cors({ origin: [`${Origin_Url}`], credentials: true }));
+app.use(
+  cors({
+    origin: [`${Origin_Url}`, "http://localhost:3000/"],
+    credentials: true,
+  })
+);
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
