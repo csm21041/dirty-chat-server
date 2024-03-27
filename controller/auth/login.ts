@@ -43,6 +43,8 @@ export default async function login(req: Request, res: Response) {
     });
     if (supabaseuser == null)
       return res.status(403).json({ message: "Invalid Credentials" });
+
+    console.log("Token", supabaseuser.data.session?.access_token);
     res.cookie("token", supabaseuser.data.session?.access_token, {
       httpOnly: true,
       sameSite: "none",
