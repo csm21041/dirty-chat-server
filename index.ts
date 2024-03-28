@@ -21,8 +21,8 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/admin", getUser, adminRoutes);
-app.use("/user", getUser, userRoutes);
+app.use("/admin", adminRoutes);
+app.use("/user", userRoutes);
 app.use("/auth", authRoutes);
 
 app.listen(Port, () => console.log(`Backend is running at ${Port}`));

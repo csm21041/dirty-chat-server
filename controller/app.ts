@@ -16,7 +16,7 @@ interface ImageData {
 }
 
 interface MessageData {
-  userId: number;
+  userId: string;
   modelId: number;
   max_tokens: number;
   message_text: { role: string; content: string };
@@ -133,6 +133,7 @@ async function storeMessage(req: Request, res: Response) {
       role: "assistant",
       content: result.data.choices[0].message.content,
     };
+    console.log(data);
 
     await prisma.$transaction([
       prisma.messages.create({
@@ -174,7 +175,7 @@ async function getMessages(req: Request, res: Response) {
     return res.json({ message: ` ${req.method} Request is not allowed` });
   try {
     const mid = parseInt(req.params.mid);
-    const uid = parseInt(req.params.uid);
+    const uid = req.params.uid;
     const response = await prisma.messages.findMany({
       where: {
         userId: uid,
@@ -208,7 +209,7 @@ async function deleteChat(req: Request, res: Response) {
     return res.json({ message: `${req.method} Request is not allowed` });
   try {
     const mid = parseInt(req.params.mid);
-    const uid = parseInt(req.params.uid);
+    const uid = req.params.uid;
     await prisma.messages.deleteMany({
       where: {
         userId: uid,
@@ -225,7 +226,7 @@ async function getToken(req: Request, res: Response) {
   if (req.method !== "GET")
     return res.json({ message: ` ${req.method} Request is not allowed` });
   try {
-    const uid = parseInt(req.params.uid);
+    const uid = req.params.uid;
     const response = await prisma.user.findUnique({
       where: {
         id: uid,
