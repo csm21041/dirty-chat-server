@@ -19,7 +19,7 @@ enum tstatus{
 }
 
 model User{
-  id String @unique @id  @db.VarChar(255) @default(uuid()) 
+  id String  @unique @id  @default(uuid()) 
   username String  @db.VarChar(255)
   email String  @unique  @db.VarChar(255)
   password String  @db.VarChar(255)
