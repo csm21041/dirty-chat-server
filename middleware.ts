@@ -7,18 +7,27 @@ export default async function getUser(
   next: NextFunction
 ) {
   try {
-    const cookies = req.cookies;
-    const token = cookies.token;
-    if (token === "") {
-      return res.status(401).json({ error: "Unauthorized: Missing token" });
+    const cookie = req.cookies;
+    const token = cookie["sb-jsjoswfatcvghzacmiqj-auth-token"];
+    const parsedToken = JSON.parse(token);
+    if (
+      parsedToken.access_token === undefined ||
+      parsedToken.access_token === null ||
+      parsedToken.access_token === ""
+    ) {
+      return res.status(401).json({ message: "Unauthorized: Missing token" });
     }
     const supabase = await createSupabaseClient();
-    const { data: user, error } = await supabase.auth.getUser(token);
-    if (user === null) {
-      return res.status(401).json({ error: "Unauthorized: Invalid token" });
+    const { data: user, error } = await supabase.auth.getUser(
+      parsedToken.access_token
+    );
+    if (user.user === null) {
+      return res.status(401).json({ message: "Unauthorized: Invalid token" });
     }
+    if (error) console.log("Supabase error", error);
     next();
   } catch (error) {
     console.log("Error in resolving middleware", error);
+    return res.status(403).json({ message: "Not Passed" });
   }
 }
