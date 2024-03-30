@@ -10,7 +10,7 @@ import getUser from "../middleware";
 
 const router = Router();
 
-router.get("/model/:id", getUser, getModel);
+router.get("/model/:id", getModel);
 router.post("/store", getUser, storeMessage);
 router.delete("/:uid/deleteChat/:mid", getUser, deleteChat);
 router.get("/getMessages/:uid/:mid", getUser, getMessages);
