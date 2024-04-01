@@ -1,30 +1,43 @@
 import { Request, Response, NextFunction } from "express";
 import createSupabaseClient from "./utils/client";
+import jwt from "jsonwebtoken";
 
-export default async function getUser(
+export async function getUser(req: Request, res: Response, next: NextFunction) {
+  try {
+    const cookie = req.cookies;
+    const token = cookie["token"];
+
+    if (token === undefined || token === null || token === "") {
+      return res.status(401).json({ message: "Unauthorized: Missing token" });
+    }
+    const user = jwt.verify(token, process.env.JWT_SECRET as string);
+    if (user === null)
+      return res.status(401).json({ message: "Unauthorized: Invalid token" });
+    next();
+  } catch (error) {
+    console.log("Error in resolving middleware", error);
+    return res.status(403).json({ message: "Not Passed" });
+  }
+}
+export async function getAdmin(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
+  console.log("Admin middleware");
   try {
-    const cookie = req.cookies;
-    const token = cookie["sb-jsjoswfatcvghzacmiqj-auth-token"];
-    const parsedToken = JSON.parse(token);
-    if (
-      parsedToken.access_token === undefined ||
-      parsedToken.access_token === null ||
-      parsedToken.access_token === ""
-    ) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader)
+      return res.status(401).json({ message: "Unauthorized: Missing Headers" });
+    const token = authHeader.split(" ")[1];
+    console.log(token);
+    if (!token)
       return res.status(401).json({ message: "Unauthorized: Missing token" });
-    }
-    const supabase = await createSupabaseClient();
-    const { data: user, error } = await supabase.auth.getUser(
-      parsedToken.access_token
-    );
-    if (user.user === null) {
-      return res.status(401).json({ message: "Unauthorized: Invalid token" });
-    }
-    if (error) console.log("Supabase error", error);
+    console.log(process.env.JWT_SECRET);
+    // const user = jwt.decode(token);
+    // if (user === null)
+    //   return res.status(401).json({ message: "Unauthorized: Invalid token" });
+
     next();
   } catch (error) {
     console.log("Error in resolving middleware", error);
