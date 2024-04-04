@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import createSupabaseClient from "./utils/client";
 import jwt from "jsonwebtoken";
 
 export async function getUser(req: Request, res: Response, next: NextFunction) {
@@ -34,10 +33,9 @@ export async function getAdmin(
     if (!token)
       return res.status(401).json({ message: "Unauthorized: Missing token" });
     console.log(process.env.JWT_SECRET);
-    // const user = jwt.decode(token);
-    // if (user === null)
-    //   return res.status(401).json({ message: "Unauthorized: Invalid token" });
-
+    const user = jwt.verify(token, process.env.JWT_SECRET as string);
+    if (user === null)
+      return res.status(401).json({ message: "Unauthorized: Invalid token" });
     next();
   } catch (error) {
     console.log("Error in resolving middleware", error);
