@@ -251,6 +251,21 @@ async function getUsers(req: Request, res: Response) {
     console.log(error);
   }
 }
+async function deleteUser(req: Request, res: Response) {
+  if (req.method !== "DELETE")
+    return res.json({ message: ` ${req.method} Request is not allowed` });
+  try {
+    const id = req.params.id;
+    await prisma.user.delete({
+      where: {
+        id: id,
+      },
+    });
+    return res.status(200).json({ message: "Deleted Successfully" });
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 export {
   createModel,
@@ -262,4 +277,5 @@ export {
   deleteChat,
   getToken,
   getUsers,
+  deleteUser,
 };

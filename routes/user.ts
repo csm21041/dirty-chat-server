@@ -5,8 +5,9 @@ import {
   getMessages,
   deleteChat,
   getToken,
+  deleteUser,
 } from "../controller/app";
-import { getUser } from "../middleware";
+import { getAdmin, getUser } from "../middleware";
 
 const router = Router();
 
@@ -15,5 +16,6 @@ router.post("/store", getUser, storeMessage);
 router.delete("/:uid/deleteChat/:mid", getUser, deleteChat);
 router.get("/getMessages/:uid/:mid", getUser, getMessages);
 router.get("/getToken/:uid", getToken);
+router.delete("/delete/:id", getAdmin, deleteUser);
 
 export default router;

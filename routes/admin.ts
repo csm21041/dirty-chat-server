@@ -16,5 +16,4 @@ router.post("/create", getAdmin, upload.array("files"), createModel);
 router.get("/models", getModels);
 router.get("/users", getUsers);
 router.delete("/delete/:id", getAdmin, deleteModel);
-
 export default router;
