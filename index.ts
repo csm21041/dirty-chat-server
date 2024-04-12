@@ -13,7 +13,11 @@ const Origin_Url = process.env.ORIGIN_URL;
 console.log(Port);
 app.use(
   cors({
-    origin: ["https://dirty-chat-ai.vercel.app", "http://localhost:3000"],
+    origin: [
+      "https://dirty-chat-ai.vercel.app",
+      "http://localhost:3000",
+      "https://admin-dashboard-navy-gamma.vercel.app",
+    ],
     credentials: true,
   })
 );
