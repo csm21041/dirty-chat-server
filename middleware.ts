@@ -5,7 +5,7 @@ export async function getUser(req: Request, res: Response, next: NextFunction) {
   try {
     const cookie = req.cookies;
     const token = cookie["token"];
-
+    console.log(token);
     if (token === undefined || token === null || token === "") {
       return res.status(401).json({ message: "Unauthorized: Missing token" });
     }

@@ -16,9 +16,7 @@ export default async function login(req: Request, res: Response) {
       id: user?.id,
       email: user?.email,
     };
-    const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(payload, process.env.JWT_SECRET as string);
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: "none",
