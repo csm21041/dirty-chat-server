@@ -32,6 +32,7 @@ async function createModel(req: Request, res: Response) {
     const formData = req.body;
     const modelData: ModelData = JSON.parse(formData.data);
     const images = req.files as ImageData[];
+    console.log("images", images);
 
     images.forEach(async (image) => {
       const imagefile = fs.readFileSync(image.path);
