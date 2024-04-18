@@ -8,6 +8,8 @@ interface ModelData {
   name: string;
   attributes: string[];
   description: string;
+  parameters: string[];
+  profile_images: string[];
 }
 
 interface ImageData {
@@ -15,9 +17,22 @@ interface ImageData {
   path: string;
 }
 
+interface ModelInfo {
+  parameters: {
+    max_tokens: number;
+    temperature: string;
+    topK: string;
+    topP: string;
+    frequencyPenalty: string;
+    presencePenalty: string;
+    repetitionPenalty: string;
+    stop: string;
+  };
+}
+
 interface MessageData {
   userId: string;
-  modelId: number;
+  modelId: string;
   max_tokens: number;
   message_text: { role: string; content: string };
 }
@@ -32,7 +47,6 @@ async function createModel(req: Request, res: Response) {
     const formData = req.body;
     const modelData: ModelData = JSON.parse(formData.data);
     const images = req.files as ImageData[];
-    console.log("images", images);
 
     images.forEach(async (image) => {
       const imagefile = fs.readFileSync(image.path);
@@ -70,13 +84,11 @@ async function createModel(req: Request, res: Response) {
       data: {
         name: modelData.name,
         attributes: modelData.attributes,
-        system_prompts: {
-          description: modelData.description,
-        },
+        description: modelData.description,
+        parameters: modelData.parameters,
         profile_images: profile_images,
       },
     });
-    console.log(finalResult);
     return res.status(200).json({ data: finalResult });
   } catch (error) {
     console.log(error);
@@ -98,7 +110,7 @@ async function getModel(req: Request, res: Response) {
   if (req.method !== "GET")
     return res.json({ message: `${req.method} Request is not allowed` });
   try {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
     const data: Model | null = await prisma.model.findFirst({
       where: {
         id: id,
@@ -115,12 +127,26 @@ async function storeMessage(req: Request, res: Response) {
     return res.json({ message: ` ${req.method} Request is not allowed` });
   try {
     const data: MessageData = req.body;
+    const modelInfo: any = await prisma.model.findFirst({
+      where: {
+        id: data.modelId,
+      },
+    });
     const api_data = {
       model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
       messages: [
         { role: data.message_text.role, content: data.message_text.content },
       ],
-      max_tokens: data.max_tokens,
+
+      "Max New Tokens": modelInfo?.parameters.max_tokens,
+      "Top K": modelInfo?.parameters.top_k,
+      "Top P": modelInfo?.parameters.top_p,
+      Temperature: modelInfo?.parameters.temperature,
+      Stop: modelInfo?.parameters.stop,
+      "System Prompt": modelInfo?.parameters.system_prompt,
+      "Presence Penalty": modelInfo?.parameters.presence_penalty,
+      "Repetition Penalty": modelInfo?.parameters.repetition_penalty,
+      "Frequency Penalty": modelInfo?.parameters.frequency_penalty,
     };
 
     const result = await axios.post(`${process.env.API_END_POINT}`, api_data, {
@@ -175,7 +201,7 @@ async function getMessages(req: Request, res: Response) {
   if (req.method !== "GET")
     return res.json({ message: ` ${req.method} Request is not allowed` });
   try {
-    const mid = parseInt(req.params.mid);
+    const mid = req.params.mid;
     const uid = req.params.uid;
     const response = await prisma.messages.findMany({
       where: {
@@ -193,7 +219,7 @@ async function deleteModel(req: Request, res: Response) {
   if (req.method !== "DELETE")
     return res.json({ message: `${req.method} Request is not allowed` });
   try {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
     await prisma.model.delete({
       where: {
         id: id,
@@ -209,7 +235,7 @@ async function deleteChat(req: Request, res: Response) {
   if (req.method !== "DELETE")
     return res.json({ message: `${req.method} Request is not allowed` });
   try {
-    const mid = parseInt(req.params.mid);
+    const mid = req.params.mid;
     const uid = req.params.uid;
     await prisma.messages.deleteMany({
       where: {
@@ -252,6 +278,61 @@ async function getUsers(req: Request, res: Response) {
     console.log(error);
   }
 }
+
+async function getUserInfo(req: Request, res: Response) {
+  if (req.method !== "GET")
+    return res.json({ message: ` ${req.method} Request is not allowed` });
+  try {
+    const id = req.params.id;
+    const response = await prisma.user.findFirst({
+      where: {
+        id: id,
+      },
+    });
+    return res.status(200).json(response);
+  } catch (error) {
+    console.log(error);
+  }
+}
+async function requestToken(req: Request, res: Response) {
+  if (req.method !== "POST")
+    return res.json({ message: ` ${req.method} Request is not allowed` });
+  try {
+    console.log(req.body);
+    const tokenreq = parseInt(req.body.tokenreq);
+    const currtoken = parseInt(req.body.currtoken);
+    const id = req.params.id;
+    await prisma.token_Request.create({
+      data: {
+        userId: id,
+        requested_tokens: tokenreq,
+        status: "pending",
+      },
+    });
+    return res.status(200).json({ message: "Request Completed Successfully" });
+  } catch (error) {
+    console.log(error);
+  }
+}
+async function getTokenRequests(req: Request, res: Response) {
+  if (req.method !== "GET")
+    return res.json({ message: ` ${req.method} Request is not allowed` });
+  try {
+    const response = await prisma.token_Request.findMany({
+      take: 10,
+      where: {
+        status: "pending",
+      },
+      include: {
+        user: true,
+      },
+    });
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(404).send("Unable to fetch the requests");
+  }
+}
+
 async function deleteUser(req: Request, res: Response) {
   if (req.method !== "DELETE")
     return res.json({ message: ` ${req.method} Request is not allowed` });
@@ -278,5 +359,8 @@ export {
   deleteChat,
   getToken,
   getUsers,
+  getUserInfo,
   deleteUser,
+  requestToken,
+  getTokenRequests,
 };

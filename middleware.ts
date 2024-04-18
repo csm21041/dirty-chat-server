@@ -5,7 +5,6 @@ export async function getUser(req: Request, res: Response, next: NextFunction) {
   try {
     const cookie = req.cookies;
     const token = cookie["token"];
-    console.log(token);
     if (token === undefined || token === null || token === "") {
       return res.status(401).json({ message: "Unauthorized: Missing token" });
     }
@@ -23,16 +22,13 @@ export async function getAdmin(
   res: Response,
   next: NextFunction
 ) {
-  console.log("Admin middleware");
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader)
       return res.status(401).json({ message: "Unauthorized: Missing Headers" });
     const token = authHeader.split(" ")[1];
-    console.log(token);
     if (!token)
       return res.status(401).json({ message: "Unauthorized: Missing token" });
-    console.log(process.env.JWT_SECRET);
     const user = jwt.verify(token, process.env.JWT_SECRET as string);
     if (user === null)
       return res.status(401).json({ message: "Unauthorized: Invalid token" });
