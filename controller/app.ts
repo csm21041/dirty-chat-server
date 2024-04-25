@@ -79,7 +79,6 @@ async function createModel(req: Request, res: Response) {
         .getPublicUrl(`${modelData.name}/${images[i].filename}`);
       profile_images[`${i}`] = String(data.publicUrl);
     }
-
     const finalResult = await prisma.model.create({
       data: {
         name: modelData.name,
@@ -138,17 +137,18 @@ async function storeMessage(req: Request, res: Response) {
         { role: data.message_text.role, content: data.message_text.content },
       ],
 
-      "Max New Tokens": modelInfo?.parameters.max_tokens,
-      "Top K": modelInfo?.parameters.top_k,
-      "Top P": modelInfo?.parameters.top_p,
-      Temperature: modelInfo?.parameters.temperature,
-      Stop: modelInfo?.parameters.stop,
-      "System Prompt": modelInfo?.parameters.system_prompt,
-      "Presence Penalty": modelInfo?.parameters.presence_penalty,
-      "Repetition Penalty": modelInfo?.parameters.repetition_penalty,
-      "Frequency Penalty": modelInfo?.parameters.frequency_penalty,
+      "System Prompt": modelInfo.parameters.system_prompt,
+      "Max New Tokens": Number(modelInfo?.parameters.max_new_tokens) || 512,
+      Temperature: Number(modelInfo?.parameters.temperature) || 0.7,
+      "Top P": Number(modelInfo?.parameters.top_p) || 0.9,
+      "Top K": Number(modelInfo?.parameters.top_k) || 0,
+      "Repetition Penalty":
+        Number(modelInfo?.parameters.repetition_penalty) || 1,
+      Stop: modelInfo?.parameters.stop || [],
+      "Presence Penalty": Number(modelInfo?.parameters.presence_penalty) || 0,
+      "Frequency Penalty": Number(modelInfo?.parameters.frequency_penalty) || 0,
     };
-
+    console.log(api_data);
     const result = await axios.post(`${process.env.API_END_POINT}`, api_data, {
       headers: {
         "Content-Type": "application/json",
@@ -190,7 +190,6 @@ async function storeMessage(req: Request, res: Response) {
         },
       }),
     ]);
-
     return res.status(200).json({ message: messageText.content });
   } catch (error) {
     console.log(error);
