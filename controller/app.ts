@@ -123,7 +123,7 @@ async function getModel(req: Request, res: Response) {
 
 async function storeMessage(req: Request, res: Response) {
   if (req.method !== "POST")
-    return res.json({ message: ` ${req.method} Request is not allowed` });
+    return res.json({ message: `${req.method} Request is not allowed` });
   try {
     const data: MessageData = req.body;
     const modelInfo: any = await prisma.model.findFirst({
@@ -134,32 +134,33 @@ async function storeMessage(req: Request, res: Response) {
     const api_data = {
       model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
       messages: [
-        { role: data.message_text.role, content: data.message_text.content },
+        { role: "system", content: modelInfo.parameters.system_prompt },
+        { role: "user", content: data.message_text.content },
       ],
 
-      system_prompt: modelInfo.parameters.system_prompt,
-      max_new_tokens: Number(modelInfo?.parameters.max_new_tokens) || 512,
-      temperature: Number(modelInfo?.parameters.temperature) || 0.7,
+      systemRole: modelInfo.parameters.system_prompt,
+      max_tokens: Number(modelInfo?.parameters.max_new_tokens) || 512,
+      temperature: Number(modelInfo?.parameters.temperature) || 0.8,
       top_p: Number(modelInfo?.parameters.top_p) || 0.9,
+      num_responses: 1,
       top_k: Number(modelInfo?.parameters.top_k) || 0,
       repetition_penalty: Number(modelInfo?.parameters.repetition_penalty) || 1,
-      stop: modelInfo?.parameters.stop || [],
+      stop: [],
       presence_penalty: Number(modelInfo?.parameters.presence_penalty) || 0,
       frequency_penalty: Number(modelInfo?.parameters.frequency_penalty) || 0,
+      webhook: null,
+      stream: false,
     };
-    console.log(api_data);
     const result = await axios.post(`${process.env.API_END_POINT}`, api_data, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.API_KEY}`,
       },
     });
-
     const messageText = {
       role: "assistant",
       content: result.data.choices[0].message.content,
     };
-    console.log(data);
 
     await prisma.$transaction([
       prisma.messages.create({
