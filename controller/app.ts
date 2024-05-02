@@ -137,16 +137,15 @@ async function storeMessage(req: Request, res: Response) {
         { role: data.message_text.role, content: data.message_text.content },
       ],
 
-      "System Prompt": modelInfo.parameters.system_prompt,
-      "Max New Tokens": Number(modelInfo?.parameters.max_new_tokens) || 512,
-      Temperature: Number(modelInfo?.parameters.temperature) || 0.7,
-      "Top P": Number(modelInfo?.parameters.top_p) || 0.9,
-      "Top K": Number(modelInfo?.parameters.top_k) || 0,
-      "Repetition Penalty":
-        Number(modelInfo?.parameters.repetition_penalty) || 1,
-      Stop: modelInfo?.parameters.stop || [],
-      "Presence Penalty": Number(modelInfo?.parameters.presence_penalty) || 0,
-      "Frequency Penalty": Number(modelInfo?.parameters.frequency_penalty) || 0,
+      system_prompt: modelInfo.parameters.system_prompt,
+      max_new_tokens: Number(modelInfo?.parameters.max_new_tokens) || 512,
+      temperature: Number(modelInfo?.parameters.temperature) || 0.7,
+      top_p: Number(modelInfo?.parameters.top_p) || 0.9,
+      top_k: Number(modelInfo?.parameters.top_k) || 0,
+      repetition_penalty: Number(modelInfo?.parameters.repetition_penalty) || 1,
+      stop: modelInfo?.parameters.stop || [],
+      presence_penalty: Number(modelInfo?.parameters.presence_penalty) || 0,
+      frequency_penalty: Number(modelInfo?.parameters.frequency_penalty) || 0,
     };
     console.log(api_data);
     const result = await axios.post(`${process.env.API_END_POINT}`, api_data, {
