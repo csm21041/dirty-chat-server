@@ -202,12 +202,15 @@ async function getMessages(req: Request, res: Response) {
   try {
     const mid = req.params.mid;
     const uid = req.params.uid;
+    console.log(mid);
+    console.log(uid);
     const response = await prisma.messages.findMany({
       where: {
         userId: uid,
         modelId: mid,
       },
     });
+    console.log(response);
     return res.status(200).json(response.map((item) => item.message_text));
   } catch (error) {
     console.log(error);
