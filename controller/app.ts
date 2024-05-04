@@ -126,17 +126,38 @@ async function storeMessage(req: Request, res: Response) {
     return res.json({ message: `${req.method} Request is not allowed` });
   try {
     const data: MessageData = req.body;
-    const modelInfo: any = await prisma.model.findFirst({
+    const modelInfo: any = await prisma.model.findUnique({
       where: {
         id: data.modelId,
       },
+      include: {
+        messages: {
+          where: {
+            userId: data.userId,
+          },
+          orderBy: {
+            timestamp: "desc",
+          },
+          take: 10,
+        },
+      },
     });
+
+    let messages = [
+      { role: "system", content: modelInfo.parameters.system_prompt },
+      { role: "user", content: data.message_text.content },
+    ];
+
+    for (let i = 0; i < modelInfo.messages.length; i++) {
+      const obj = {
+        role: modelInfo.messages[i].message_text.role,
+        content: modelInfo.messages[i].message_text.content,
+      };
+      messages.push(obj);
+    }
     const api_data = {
       model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
-      messages: [
-        { role: "system", content: modelInfo.parameters.system_prompt },
-        { role: "user", content: data.message_text.content },
-      ],
+      messages: messages,
 
       systemRole: modelInfo.parameters.system_prompt,
       max_tokens: Number(modelInfo?.parameters.max_new_tokens) || 512,
@@ -151,6 +172,7 @@ async function storeMessage(req: Request, res: Response) {
       webhook: null,
       stream: false,
     };
+
     const result = await axios.post(`${process.env.API_END_POINT}`, api_data, {
       headers: {
         "Content-Type": "application/json",
@@ -202,15 +224,12 @@ async function getMessages(req: Request, res: Response) {
   try {
     const mid = req.params.mid;
     const uid = req.params.uid;
-    console.log(mid);
-    console.log(uid);
     const response = await prisma.messages.findMany({
       where: {
         userId: uid,
         modelId: mid,
       },
     });
-    console.log(response);
     return res.status(200).json(response.map((item) => item.message_text));
   } catch (error) {
     console.log(error);
@@ -300,7 +319,6 @@ async function requestToken(req: Request, res: Response) {
   if (req.method !== "POST")
     return res.json({ message: ` ${req.method} Request is not allowed` });
   try {
-    console.log(req.body);
     const tokenreq = parseInt(req.body.tokenreq);
     const currtoken = parseInt(req.body.currtoken);
     const id = req.params.id;
