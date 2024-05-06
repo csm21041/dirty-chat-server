@@ -148,18 +148,20 @@ async function storeMessage(req: Request, res: Response) {
       { role: "user", content: data.message_text.content },
     ];
 
-    for (let i = 0; i < modelInfo.messages.length; i++) {
-      const obj = {
-        role: modelInfo.messages[i].message_text.role,
-        content: modelInfo.messages[i].message_text.content,
-      };
-      messages.push(obj);
-    }
+    // for (let i = 0; i < modelInfo.messages.length; i++) {
+    //   const obj = {
+    //     role: modelInfo.messages[i].message_text.role,
+    //     content: modelInfo.messages[i].message_text.content,
+    //   };
+    //   messages.push(obj);
+    // }
+    // console.log(messages);
+
     const api_data = {
       model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
       messages: messages,
 
-      systemRole: modelInfo.parameters.system_prompt,
+      // systemRole: modelInfo.parameters.system_prompt,
       max_tokens: Number(modelInfo?.parameters.max_new_tokens) || 512,
       temperature: Number(modelInfo?.parameters.temperature) || 0.8,
       top_p: Number(modelInfo?.parameters.top_p) || 0.9,
@@ -317,11 +319,20 @@ async function getUserInfo(req: Request, res: Response) {
 }
 async function requestToken(req: Request, res: Response) {
   if (req.method !== "POST")
-    return res.json({ message: ` ${req.method} Request is not allowed` });
+    return res.json({ message: `${req.method} Request is not allowed` });
   try {
     const tokenreq = parseInt(req.body.tokenreq);
     const currtoken = parseInt(req.body.currtoken);
     const id = req.params.id;
+    const user = await prisma.token_Request.findFirst({
+      where: {
+        userId: id,
+      },
+    });
+    if (user)
+      return res
+        .status(200)
+        .json({ message: "Your Request is already in queue" });
     await prisma.token_Request.create({
       data: {
         userId: id,

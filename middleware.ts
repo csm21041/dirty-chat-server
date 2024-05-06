@@ -6,6 +6,7 @@ export async function getUser(req: Request, res: Response, next: NextFunction) {
     const cookie = req.cookies;
     const token = cookie["token"];
     if (token === undefined || token === null || token === "") {
+      console.log("Error in getting token");
       return res.status(401).json({ message: "Unauthorized: Missing token" });
     }
     const user = jwt.verify(token, process.env.JWT_SECRET as string);
