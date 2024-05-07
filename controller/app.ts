@@ -312,6 +312,7 @@ async function getUserInfo(req: Request, res: Response) {
         id: id,
       },
     });
+    console.log(response);
     return res.status(200).json(response);
   } catch (error) {
     console.log(error);
@@ -380,6 +381,36 @@ async function deleteUser(req: Request, res: Response) {
   }
 }
 
+async function assignToken(req: Request, res: Response) {
+  if (req.method !== "POST")
+    return res.json({ message: ` ${req.method} Request is not allowed` });
+
+  try {
+    const userId = req.params.id;
+    const tokenVal = req.body.tokenVal;
+    console.log(tokenVal);
+    const tokenNumeric = parseInt(tokenVal);
+    await prisma.$transaction([
+      prisma.token_Request.delete({
+        where: {
+          userId: `${userId}`,
+        },
+      }),
+      prisma.user.update({
+        where: {
+          id: `${userId}`,
+        },
+        data: {
+          tokenbalance: tokenNumeric,
+        },
+      }),
+    ]);
+  } catch (error) {
+    console.log(error);
+    return res.status(400).send("Bad Request");
+  }
+}
+
 export {
   createModel,
   getModels,
@@ -394,4 +425,5 @@ export {
   deleteUser,
   requestToken,
   getTokenRequests,
+  assignToken,
 };
